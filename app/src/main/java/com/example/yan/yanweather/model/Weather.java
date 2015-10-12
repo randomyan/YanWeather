@@ -6,6 +6,8 @@ package com.example.yan.yanweather.model;
 public class Weather {
     public Location mLocation;
     public Temperature mTemperature = new Temperature();
+    public String mWeatherIconURL;
+//    public byte[] mIcon;
 
     public  class Temperature {
         private float mTemp;
@@ -16,9 +18,6 @@ public class Weather {
         public void setTemp(float temp) {
             this.mTemp = temp;
         }
-
-
     }
-
 
 }

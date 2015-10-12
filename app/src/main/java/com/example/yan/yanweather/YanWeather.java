@@ -1,29 +1,62 @@
 package com.example.yan.yanweather;
 
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.yan.yanweather.model.Weather;
 import com.example.yan.yanweather.utils.HttpClient;
 import com.example.yan.yanweather.utils.JSONParser;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
 public class YanWeather extends AppCompatActivity {
     private TextView mCity;
     private TextView mTemp;
+    private ImageView mWeatherIcon;
+    private LocationManager mLocationManager;
+    private final LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_yan_weather);
-        String city = "CA/San_Francisco.json";
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
+                0, mLocationListener);
+        String city = "DC/Washington.json";
         mCity = (TextView) findViewById(R.id.city_field);
         mTemp = (TextView)findViewById(R.id.current_temperature_field);
+        mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
         JSONWeatherPull pull = new JSONWeatherPull();
         pull.execute(new String[]{city});
     }
@@ -57,6 +90,7 @@ public class YanWeather extends AppCompatActivity {
             String data = ((new HttpClient()).getWeatherData(params[0]));
             try{
                 weather = JSONParser.getWeather(data);
+//                weather.mIcon = ((new HttpClient()).getImage(weather.mWeatherIconURL));
             }catch (JSONException e){
                 e.printStackTrace();
             }
@@ -66,8 +100,17 @@ public class YanWeather extends AppCompatActivity {
         @Override
         protected void onPostExecute(Weather weather){
             super.onPostExecute(weather);
-            mCity.setText(weather.mLocation.getCity()+weather.mLocation.getState()+weather.mLocation.getCountry());
-            mTemp.setText(""+weather.mTemperature.getTemp()+" C");
+           Picasso.with(YanWeather.this)
+                    .load(weather.mWeatherIconURL)
+                    .into(mWeatherIcon);
+
+          /*  if(weather.mIcon!=null &&weather.mIcon.length>0){
+                Bitmap img = BitmapFactory.decodeByteArray(weather.mIcon, 0, weather.mIcon.length);
+                mWeatherIcon.setImageBitmap(img);
+            }
+            */
+            mCity.setText(weather.mLocation.getCity() + ", " + weather.mLocation.getState() + ", " + weather.mLocation.getCountry());
+            mTemp.setText("" + weather.mTemperature.getTemp() + " C");
         }
     }
 }

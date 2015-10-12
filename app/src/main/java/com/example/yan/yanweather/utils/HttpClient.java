@@ -1,6 +1,7 @@
 package com.example.yan.yanweather.utils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -41,5 +42,31 @@ public class HttpClient {
             try { connection.disconnect(); } catch(Throwable t) {}
         }
         return  null;
+    }
+
+    public byte[] getImage(String str){
+        HttpURLConnection connection = null;
+        InputStream is = null;
+        try{
+            connection=(HttpURLConnection)(new URL(str)).openConnection();
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+            connection.connect();
+            is = connection.getInputStream();
+            byte[] buffer = new byte[2096];
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            while (is.read(buffer)!=-1) bo.write(buffer);
+            return bo.toByteArray();
+
+        }catch (Throwable t){
+            t.printStackTrace();
+        }
+
+        finally {
+            try { is.close(); } catch(Throwable t) {}
+            try { connection.disconnect(); } catch(Throwable t) {}
+        }
+        return null;
     }
 }

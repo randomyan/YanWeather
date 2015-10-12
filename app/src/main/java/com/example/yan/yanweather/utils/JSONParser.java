@@ -18,9 +18,10 @@ public class JSONParser {
         JSONObject jLocationObj = getObject("display_location",jObj);
         loc.setCity(getString("city", jLocationObj));
         loc.setCountry(getString("country", jLocationObj));
-        loc.setState(getString("state",jLocationObj));
+        loc.setState(getString("state", jLocationObj));
         weather.mLocation = loc;
         weather.mTemperature.setTemp(getFloat("temp_c",jObj));
+        weather.mWeatherIconURL= getString("icon_url",jObj);
         return weather;
     }
 
