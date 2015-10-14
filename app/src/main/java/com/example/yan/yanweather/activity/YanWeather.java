@@ -2,6 +2,7 @@ package com.example.yan.yanweather.activity;
 
 import android.Manifest;
 import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.SearchView;
@@ -31,44 +33,9 @@ public class YanWeather extends AppCompatActivity {
     private TextView mTemp;
     private ImageView mWeatherIcon;
     private LocationManager mLocationManager;
-    Location mLocation;
-    /*
-    private boolean mIsDetectingLocation = false;
-    public enum FailureReason{
-        NO_PERMISSION,
-        TIMEOUT
-    }
-    public interface LocationDetector{
-        void locationFound(Location location);
-        void locationNotFound(FailureReason failureReason);
-    }
-    private LocationDetector mLocationDetector;
-
-    public void detectLocation(){
-        if(mIsDetectingLocation == false){
-            mIsDetectingLocation = true;
-
-            if(mLocationManager == null){
-                mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
-            }
 
 
-            if(ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < 23) {
-                mLocationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, this, null);
-                startTimer();
-            }
-            else {
-                endLocationDetection();
-                mLocationDetector.locationNotFound(FailureReason.NO_PERMISSION);
-            }
-        }
-        else{
-            Log.d(TAG, "already trying to detect location");
-        }
-    }
-    */
-
-    public class MyCurrentLoctionListener implements LocationListener{
+    public class MyCurrentLoctionListener implements LocationListener {
 
         @Override
         public void onLocationChanged(Location location) {
@@ -99,37 +66,12 @@ public class YanWeather extends AppCompatActivity {
         }
     }
     MyCurrentLoctionListener mLocationListener;
-    /*
-    private final LocationListener mLocationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(android.location.Location location) {
-            String msg = "New Latitude: " + location.getLatitude()
-                    + "New Longitude: " + location.getLongitude();
-            Log.e("MY CURRENT LOCATION", msg);
-            Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
-    };
-*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_yan_weather);
+
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -147,7 +89,7 @@ public class YanWeather extends AppCompatActivity {
         if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
 
-     //   mLocationListener.onLocationChanged( mLocation);
+        //   mLocationListener.onLocationChanged( mLocation);
 /*
         if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
@@ -158,21 +100,28 @@ public class YanWeather extends AppCompatActivity {
         mTemp = (TextView)findViewById(R.id.current_temperature_field);
         mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
         JSONWeatherPull pull = new JSONWeatherPull();
-       // pull.execute(new String[]{city});
+        // pull.execute(new String[]{city});
         String qur = "WA/Seattle.json";
         pull.execute(new String[]{city, qur});
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_yan_weather, menu);
+        MenuInflater inflater = getMenuInflater();
+        // Inflate menu to add items to action bar if it is present.
+        inflater.inflate(R.menu.menu_yan_weather, menu);
+        // Associate searchable configuration with the SearchView
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView =
                 (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setSearchableInfo( searchManager.getSearchableInfo(getComponentName()));
-   /**/
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setIconified(true);
+        searchView.setQueryHint("zip code");
+        ComponentName cn = new ComponentName(this, SearchWeather.class);
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(cn));
+
         return true;
     }
 
@@ -187,26 +136,33 @@ public class YanWeather extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-
+        if (id == R.id.search) {
+            doMySearch("test");
+        }
         return super.onOptionsItemSelected(item);
     }
 
-    private class JSONWeatherPull extends AsyncTask<String,Void,Weather>{
+    public void doMySearch(String query){
+        Log.e("test", query);
+
+    }
+
+    private class JSONWeatherPull extends AsyncTask<String,Void,Weather> {
         //TODO: add progressDialog while user waiting
         @Override
         protected Weather doInBackground(String... params){
             Weather weather = new Weather();
             HttpClient testHttp = new HttpClient();
-        //    String data = ((new HttpClient()).getWeatherData(params[0]));
+            //    String data = ((new HttpClient()).getWeatherData(params[0]));
             String qur = testHttp.userQuery("autoip.json");
-        //    String qur = testHttp.userQuery(params[0]);
+            //    String qur = testHttp.userQuery(params[0]);
             try{
                 qur = JSONParser.getUserQuery(qur);
             }catch (JSONException e){
                 e.printStackTrace();
             }
             String data = testHttp.getWeatherData(qur);
-       //     String data = testHttp.getWeatherData(params[0]);
+            //     String data = testHttp.getWeatherData(params[0]);
             try{
                 weather = JSONParser.getWeather(data);
 //                weather.mIcon = ((new HttpClient()).getImage(weather.mWeatherIconURL));
@@ -219,7 +175,7 @@ public class YanWeather extends AppCompatActivity {
         @Override
         protected void onPostExecute(Weather weather){
             super.onPostExecute(weather);
-           Picasso.with(YanWeather.this)
+            Picasso.with(YanWeather.this)
                     .load(weather.mWeatherIconURL)
                     .into(mWeatherIcon);
 
