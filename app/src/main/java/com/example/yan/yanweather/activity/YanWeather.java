@@ -1,6 +1,8 @@
-package com.example.yan.yanweather;
+package com.example.yan.yanweather.activity;
 
 import android.Manifest;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -12,9 +14,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.yan.yanweather.R;
 import com.example.yan.yanweather.model.Weather;
 import com.example.yan.yanweather.utils.HttpClient;
 import com.example.yan.yanweather.utils.JSONParser;
@@ -163,6 +167,12 @@ public class YanWeather extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_yan_weather, menu);
+        SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView =
+                (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo( searchManager.getSearchableInfo(getComponentName()));
+   /**/
         return true;
     }
 
