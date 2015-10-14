@@ -13,6 +13,37 @@ import java.net.URL;
 public class HttpClient {
     private static String BASE_URL = "http://api.wunderground.com/api/839414bb65aedbbc/conditions/q/";
 
+    public String userQuery(String loc){
+        HttpURLConnection connection = null;
+        InputStream is = null;
+
+        try {
+            connection = (HttpURLConnection) (new URL("http://api.wunderground.com/api/839414bb65aedbbc/geolookup/q/" + loc)).openConnection();
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+            connection.connect();
+
+            StringBuffer buffer = new StringBuffer();
+            is = connection.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+            while ((line = br.readLine()) != null)
+                buffer.append(line + "\r\n");
+
+            is.close();
+            connection.disconnect();
+            return buffer.toString();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        finally {
+            try { is.close(); } catch(Throwable t) {}
+            try { connection.disconnect(); } catch(Throwable t) {}
+        }
+        return  null;
+    }
+
     public String getWeatherData(String location) {
         HttpURLConnection connection = null;
         InputStream is = null;

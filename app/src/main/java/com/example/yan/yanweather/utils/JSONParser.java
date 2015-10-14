@@ -22,7 +22,17 @@ public class JSONParser {
         weather.mLocation = loc;
         weather.mTemperature.setTemp(getFloat("temp_c",jObj));
         weather.mWeatherIconURL= getString("icon_url",jObj);
+        //TODO: add weather description, such as "sunny etc"
         return weather;
+    }
+
+    public static String getUserQuery(String data) throws JSONException{
+       String city;
+        JSONObject jObj= getObject("location",new JSONObject(data));
+        city = getString("requesturl", jObj);
+        city = city.replace("US/","");
+        city = city.replace(".html",".json");
+        return city;
     }
 
     private static float getFloat(String tagName, JSONObject jObj)throws JSONException{
