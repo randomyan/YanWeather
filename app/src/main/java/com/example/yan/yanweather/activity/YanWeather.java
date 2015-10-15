@@ -116,7 +116,7 @@ public class YanWeather extends AppCompatActivity {
         SearchView searchView =
                 (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSubmitButtonEnabled(true);
-        searchView.setIconified(true);
+      //  searchView.setIconified(true);
         searchView.setQueryHint("zip code");
         ComponentName cn = new ComponentName(this, SearchWeather.class);
         searchView.setSearchableInfo(

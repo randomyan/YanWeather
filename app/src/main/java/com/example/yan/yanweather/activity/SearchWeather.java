@@ -1,6 +1,7 @@
 package com.example.yan.yanweather.activity;
 
 import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import com.example.yan.yanweather.R;
 
@@ -29,6 +31,11 @@ public class SearchWeather extends AppCompatActivity{
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView =
                 (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setQueryHint("zip code");
+        searchView.setSubmitButtonEnabled(true);
+        ComponentName cn = new ComponentName(this, SearchWeather.class);
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(cn));
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getComponentName()));
         return true;
@@ -42,6 +49,7 @@ public class SearchWeather extends AppCompatActivity{
 
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
+            Toast.makeText(getBaseContext(), query, Toast.LENGTH_LONG).show();
             //use the query to search
         }
     }
