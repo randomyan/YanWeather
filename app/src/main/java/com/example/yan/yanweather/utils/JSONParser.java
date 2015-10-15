@@ -13,7 +13,7 @@ public class JSONParser {
     public static Weather getWeather(String data) throws JSONException{
         Weather weather = new Weather();
         Location loc = new Location();
-        JSONObject jObj= getObject("current_observation",new JSONObject(data));
+        JSONObject jObj= getObject("current_observation", new JSONObject(data));
 
         JSONObject jLocationObj = getObject("display_location",jObj);
         loc.setCity(getString("city", jLocationObj));
@@ -21,7 +21,7 @@ public class JSONParser {
         loc.setState(getString("state", jLocationObj));
         weather.mLocation = loc;
         weather.mTemperature.setTemp(getFloat("temp_c",jObj));
-        weather.mWeatherIconURL= getString("icon_url",jObj);
+        weather.mWeatherIconURL= getString("icon_url", jObj);
         //TODO: add weather description, such as "sunny etc"
         return weather;
     }
@@ -29,9 +29,16 @@ public class JSONParser {
     public static String getUserQuery(String data) throws JSONException{
        String city;
         JSONObject jObj= getObject("location",new JSONObject(data));
-        city = getString("requesturl", jObj);
-        city = city.replace("US/","");
-        city = city.replace(".html",".json");
+        String temp = getString("country", jObj);;
+        if(!"US".equals(temp)) {
+            if("CI".equals(temp)) temp = "CN"; //== tests for reference equality (whether they are the same object).
+            city = temp+"/"+getString("city", jObj).replace(" ","_")+".json";
+        }
+        else{
+            city = getString("requesturl", jObj);
+            city = city.replace("US/","");
+            city = city.replace(".html",".json");
+        }
         return city;
     }
 

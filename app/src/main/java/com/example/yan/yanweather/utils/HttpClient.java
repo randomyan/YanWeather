@@ -16,7 +16,6 @@ public class HttpClient {
     public String userQuery(String loc){
         HttpURLConnection connection = null;
         InputStream is = null;
-
         try {
             connection = (HttpURLConnection) (new URL("http://api.wunderground.com/api/839414bb65aedbbc/geolookup/q/" + loc)).openConnection();
             connection.setRequestMethod("GET");

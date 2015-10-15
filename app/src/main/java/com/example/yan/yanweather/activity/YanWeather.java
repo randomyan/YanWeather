@@ -9,7 +9,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -33,64 +36,19 @@ public class YanWeather extends AppCompatActivity {
     private TextView mTemp;
     private ImageView mWeatherIcon;
     private LocationManager mLocationManager;
-
-
-    public class MyCurrentLoctionListener implements LocationListener {
-
-        @Override
-        public void onLocationChanged(Location location) {
-            location.getLatitude();
-            location.getLongitude();
-
-            String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
-            Toast.makeText(getBaseContext(), myLocation, Toast.LENGTH_LONG).show();
-
-            //I make a log to see the results
-            Log.e("MY CURRENT LOCATION", myLocation );
-
-        }
-
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String s) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String s) {
-
-        }
-    }
+    private boolean mIsDetectingLocation = false;
+    private final int TIMEOUT_IN_MS = 10000; //10 second timeout
+    private static final String TAG = "LocationFinder";
+    private Location mCurrentLocation;
+    private Weather mWeather;
+    private boolean mIsUerSearching = false;
     MyCurrentLoctionListener mLocationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_yan_weather);
-
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for Activity#requestPermissions for more details.
-                return;
-            }
-        }
-        mLocationListener = new MyCurrentLoctionListener();
-        if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
-
-        //   mLocationListener.onLocationChanged( mLocation);
-/*
+        /*
         if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
             */
@@ -99,10 +57,10 @@ public class YanWeather extends AppCompatActivity {
         mCity = (TextView) findViewById(R.id.city_field);
         mTemp = (TextView)findViewById(R.id.current_temperature_field);
         mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
+        mLocationListener = new MyCurrentLoctionListener();
         JSONWeatherPull pull = new JSONWeatherPull();
-        // pull.execute(new String[]{city});
-        String qur = "WA/Seattle.json";
-        pull.execute(new String[]{city, qur});
+        pull.execute("autoip.json");
+        detectLocation();
     }
 
     @Override
@@ -137,6 +95,7 @@ public class YanWeather extends AppCompatActivity {
             return true;
         }
         if (id == R.id.search) {
+            mIsUerSearching = true;
             doMySearch("test");
         }
         return super.onOptionsItemSelected(item);
@@ -147,27 +106,74 @@ public class YanWeather extends AppCompatActivity {
 
     }
 
+
+    public class MyCurrentLoctionListener implements LocationListener {
+        @Override
+        public void onLocationChanged(Location location) {
+            mCurrentLocation = location;
+            location.getLatitude();
+            location.getLongitude();
+            String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
+            if(mCurrentLocation!=null){
+//                pull.cancel(true);
+                String latLong = Double.toString(mCurrentLocation.getLatitude()) + "," + Double.toString(mCurrentLocation.getLongitude()) + ".json";
+                new JSONWeatherPull().execute(new String[]{latLong});
+            }
+
+            else{
+                myLocation ="Can't find weather info for this location";
+            }
+            Toast.makeText(getBaseContext(), myLocation, Toast.LENGTH_LONG).show();
+            //I make a log to see the results
+            //   Log.e("MY CURRENT LOCATION", myLocation);
+        }
+
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String s) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String s) {
+
+        }
+    }
     private class JSONWeatherPull extends AsyncTask<String,Void,Weather> {
         //TODO: add progressDialog while user waiting
         @Override
         protected Weather doInBackground(String... params){
-            Weather weather = new Weather();
+            Weather weather= new Weather();
             HttpClient testHttp = new HttpClient();
             //    String data = ((new HttpClient()).getWeatherData(params[0]));
-            String qur = testHttp.userQuery("autoip.json");
+         //   String qur = testHttp.userQuery("autoip.json");
+            String qur = testHttp.userQuery(params[0]);
             //    String qur = testHttp.userQuery(params[0]);
-            try{
-                qur = JSONParser.getUserQuery(qur);
-            }catch (JSONException e){
-                e.printStackTrace();
-            }
-            String data = testHttp.getWeatherData(qur);
-            //     String data = testHttp.getWeatherData(params[0]);
-            try{
-                weather = JSONParser.getWeather(data);
+            if(qur!=null) {
+                try {
+                    qur = JSONParser.getUserQuery(qur);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if(qur!=null) {
+                    String data = testHttp.getWeatherData(qur);
+                    //     String data = testHttp.getWeatherData(params[0]);
+                    try {
+                        weather = JSONParser.getWeather(data);
+                        mWeather = weather;
 //                weather.mIcon = ((new HttpClient()).getImage(weather.mWeatherIconURL));
-            }catch (JSONException e){
-                e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        weather = null;
+                    }
+                }
+            }
+            else{
+                weather = null;
             }
             return weather;
         }
@@ -175,17 +181,98 @@ public class YanWeather extends AppCompatActivity {
         @Override
         protected void onPostExecute(Weather weather){
             super.onPostExecute(weather);
-            Picasso.with(YanWeather.this)
-                    .load(weather.mWeatherIconURL)
-                    .into(mWeatherIcon);
-
           /*  if(weather.mIcon!=null &&weather.mIcon.length>0){
                 Bitmap img = BitmapFactory.decodeByteArray(weather.mIcon, 0, weather.mIcon.length);
                 mWeatherIcon.setImageBitmap(img);
             }
             */
-            mCity.setText(weather.mLocation.getCity() + ", " + weather.mLocation.getState() + ", " + weather.mLocation.getCountry());
-            mTemp.setText("" + weather.mTemperature.getTemp() + " C");
+            if(weather!=null){
+                Picasso.with(YanWeather.this)
+                        .load(weather.mWeatherIconURL)
+                        .into(mWeatherIcon);
+                mCity.setText(weather.mLocation.getCity() + ", " + weather.mLocation.getState() + ", " + weather.mLocation.getCountry());
+                mTemp.setText("" + weather.mTemperature.getTemp() + " C");
+            }
+            else{
+                Toast.makeText(getBaseContext(), "Sorry, server shutdown", Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
+    public void detectLocation(){
+        if(mIsDetectingLocation == false){
+            mIsDetectingLocation = true;
+
+            if(mLocationManager == null){
+                mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            }
+
+
+            if (Build.VERSION.SDK_INT<Build.VERSION_CODES.M||ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
+                    mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER,mLocationListener,null);
+                startTimer();
+            }
+            else{
+                endLocationDetection();
+            }
+/*
+            if(mCurrentLocation!=null){
+                String latLong = Double.toString(mCurrentLocation.getLatitude()) +"," +Double.toString(mCurrentLocation.getLongitude())+".json";
+                pull.execute(new String[]{latLong});
+            }
+            else{
+                pull.execute(new String[]{"autoip.json"});
+            }
+*/
+        }
+        else{
+            Log.d(TAG, "already trying to detect location");
+            Toast.makeText(this,"already trying",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void endLocationDetection(){
+        if(mIsDetectingLocation) {
+            mIsDetectingLocation = false;
+            if (Build.VERSION.SDK_INT<Build.VERSION_CODES.M|| ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                mLocationManager.removeUpdates(mLocationListener);
+            }
+        }
+        Log.d(TAG, "no permission");
+        Toast.makeText(getBaseContext(), "no permission", Toast.LENGTH_SHORT).show();
+    }
+
+    private void startTimer(){
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mIsDetectingLocation) {
+                    fallbackOnLastKnownLocation();
+                }
+            }
+        }, TIMEOUT_IN_MS);
+
+    }
+
+    private void fallbackOnLastKnownLocation(){
+        Location lastKnownLocation = null;
+        if (Build.VERSION.SDK_INT<Build.VERSION_CODES.M||ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            lastKnownLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        }
+
+        if(lastKnownLocation != null){
+            String temp = "lat: "+Double.toString(lastKnownLocation.getLatitude()) +" lon:" + Double.toString(lastKnownLocation.getLongitude());
+            Toast.makeText(getBaseContext(), temp, Toast.LENGTH_LONG).show();
+            mCurrentLocation = lastKnownLocation;
+            String latLong = Double.toString(mCurrentLocation.getLatitude()) +"," +Double.toString(mCurrentLocation.getLongitude())+".json";
+            new JSONWeatherPull().execute(new String[]{latLong});
+        }
+        else{
+            Log.d(TAG, "Time Out, no location found");
+            Toast.makeText(getBaseContext(), "Time Out, no location found", Toast.LENGTH_LONG).show();
+        }
+    }
+
 }
