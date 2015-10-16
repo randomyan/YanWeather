@@ -18,7 +18,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,10 +42,11 @@ public class YanWeather extends AppCompatActivity {
     private final int TIMEOUT_IN_MS = 10000; //10 second timeout
     private static final String TAG = "LocationFinder";
     private Location mCurrentLocation;
+    private ProgressBar mProgressBar;
     private Weather mWeather;
     private boolean mIsUerSearching = false;
     MyCurrentLoctionListener mLocationListener;
-
+    JSONWeatherPull pull = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,8 +61,12 @@ public class YanWeather extends AppCompatActivity {
         mTemp = (TextView)findViewById(R.id.current_temperature_field);
         mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
         mLocationListener = new MyCurrentLoctionListener();
-        JSONWeatherPull pull = new JSONWeatherPull();
+        pull = new JSONWeatherPull();
         pull.execute("autoip.json");
+        /*
+        if(pull.getStatus()==JSONWeatherPull.Status.FINISHED){
+            pull.cancel(true);
+        }*/
         detectLocation();
     }
 
@@ -115,9 +122,11 @@ public class YanWeather extends AppCompatActivity {
             location.getLongitude();
             String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
             if(mCurrentLocation!=null){
-//                pull.cancel(true);
+                if(pull!=null)
+                pull.cancel(true);
+                pull = new JSONWeatherPull();
                 String latLong = Double.toString(mCurrentLocation.getLatitude()) + "," + Double.toString(mCurrentLocation.getLongitude()) + ".json";
-                new JSONWeatherPull().execute(new String[]{latLong});
+                pull.execute(new String[]{latLong});
             }
 
             else{
@@ -143,8 +152,19 @@ public class YanWeather extends AppCompatActivity {
 
         }
     }
-    private class JSONWeatherPull extends AsyncTask<String,Void,Weather> {
-        //TODO: add progressDialog while user waiting
+    private class JSONWeatherPull extends AsyncTask<String,Integer,Weather> {
+        @Override
+        protected void onPreExecute() {
+            mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+            mProgressBar.setVisibility(View.VISIBLE);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+
+        }
         @Override
         protected Weather doInBackground(String... params){
             Weather weather= new Weather();
@@ -180,6 +200,7 @@ public class YanWeather extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Weather weather){
+            mProgressBar.setVisibility(View.INVISIBLE);
             super.onPostExecute(weather);
           /*  if(weather.mIcon!=null &&weather.mIcon.length>0){
                 Bitmap img = BitmapFactory.decodeByteArray(weather.mIcon, 0, weather.mIcon.length);
@@ -267,12 +288,16 @@ public class YanWeather extends AppCompatActivity {
             Toast.makeText(getBaseContext(), temp, Toast.LENGTH_LONG).show();
             mCurrentLocation = lastKnownLocation;
             String latLong = Double.toString(mCurrentLocation.getLatitude()) +"," +Double.toString(mCurrentLocation.getLongitude())+".json";
-            new JSONWeatherPull().execute(new String[]{latLong});
+                if(pull!=null) pull.cancel(true);
+                pull = new JSONWeatherPull();
+            pull.execute(new String[]{latLong});
         }
+/*
         else{
             Log.d(TAG, "Time Out, no location found");
             Toast.makeText(getBaseContext(), "Time Out, no location found", Toast.LENGTH_LONG).show();
         }
+        */
     }
 
 }
