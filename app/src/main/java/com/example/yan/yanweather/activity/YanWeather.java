@@ -1,73 +1,81 @@
 package com.example.yan.yanweather.activity;
 
-import android.Manifest;
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.yan.yanweather.R;
-import com.example.yan.yanweather.model.Weather;
-import com.example.yan.yanweather.utils.HttpClient;
-import com.example.yan.yanweather.utils.JSONParser;
-import com.squareup.picasso.Picasso;
-
-import org.json.JSONException;
+import com.example.yan.yanweather.utils.MyCurrentLoctionListener;
+import com.example.yan.yanweather.utils.WeatherDataHelper;
 
 public class YanWeather extends AppCompatActivity {
-    private TextView mCity;
-    private TextView mTemp;
-    private ImageView mWeatherIcon;
-    private LocationManager mLocationManager;
-    private boolean mIsDetectingLocation = false;
-    private final int TIMEOUT_IN_MS = 10000; //10 second timeout
-    private static final String TAG = "LocationFinder";
-    private Location mCurrentLocation;
-    private ProgressBar mProgressBar;
-    private Weather mWeather;
-    private boolean mIsUerSearching = false;
+    private WeatherDataHelper mWeatherDataHelper = new WeatherDataHelper();
+ //   private TextView mCity;
+//    private TextView mTemp;
+ //   private ImageView mWeatherIcon;
+//    private LocationManager mLocationManager;
+//    private boolean mIsDetectingLocation = false;
+//    private final int TIMEOUT_IN_MS = 10000; //10 second timeout
+//    private static final String TAG = "LocationFinder";
+
+//    private ProgressBar mProgressBar;
+    private SearchView searchView = null;
     MyCurrentLoctionListener mLocationListener;
-    JSONWeatherPull pull = null;
+//    JSONWeatherPull pull = null;
+
+ //   private Context mContext = this;
+
+/*
+    public ProgressBar getProgressBar() {
+        return mProgressBar;
+    }
+
+    public Context getContext() {
+        return mContext;
+    }
+
+
+    public TextView getCity() {
+        return mCity;
+    }
+
+    public TextView getTemp() {
+        return mTemp;
+    }
+
+    public ImageView getWeatherIcon() {
+        return mWeatherIcon;
+    }
+*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_yan_weather);
+        mWeatherDataHelper.mContext = this;
         /*
         if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
             */
+        mWeatherDataHelper.mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        mWeatherDataHelper.mCity = (TextView) findViewById(R.id.city_field);
+        mWeatherDataHelper.mTemp = (TextView)findViewById(R.id.current_temperature_field);
+        mWeatherDataHelper.mNotice = (TextView) findViewById(R.id.notice);
+        mWeatherDataHelper.mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
+        mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
+        mLocationListener.initiateJsonPull();
+        mLocationListener.mJSONWeatherPull.execute("autoip.json");
 
-        String city = "WA/Seattle.json";//CA/San_Francisco.json
-        mCity = (TextView) findViewById(R.id.city_field);
-        mTemp = (TextView)findViewById(R.id.current_temperature_field);
-        mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
-        mLocationListener = new MyCurrentLoctionListener();
-        pull = new JSONWeatherPull();
-        pull.execute("autoip.json");
-        /*
-        if(pull.getStatus()==JSONWeatherPull.Status.FINISHED){
-            pull.cancel(true);
-        }*/
-        detectLocation();
+        mLocationListener.detectLocation();
     }
 
     @Override
@@ -78,14 +86,17 @@ public class YanWeather extends AppCompatActivity {
         // Associate searchable configuration with the SearchView
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView =
+        searchView =
                 (SearchView) menu.findItem(R.id.search).getActionView();
+
         searchView.setSubmitButtonEnabled(true);
-      //  searchView.setIconified(true);
+        searchView.setIconified(true);
+//        searchView.setIconifiedByDefault(false);
         searchView.setQueryHint("zip code");
         ComponentName cn = new ComponentName(this, SearchWeather.class);
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(cn));
+
 
         return true;
     }
@@ -102,30 +113,40 @@ public class YanWeather extends AppCompatActivity {
             return true;
         }
         if (id == R.id.search) {
-            mIsUerSearching = true;
-            doMySearch("test");
+  //          doMySearch("test");
         }
         return super.onOptionsItemSelected(item);
     }
-
+/*
     public void doMySearch(String query){
         Log.e("test", query);
 
     }
+*/
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        if(Build.VERSION.SDK_INT >= 11)
+            invalidateOptionsMenu();
+        if( searchView!=null){
+            searchView.setQuery("", false);
+            searchView.clearFocus();
+        }
 
+    }
 
+/*
     public class MyCurrentLoctionListener implements LocationListener {
         @Override
         public void onLocationChanged(Location location) {
-            mCurrentLocation = location;
             location.getLatitude();
             location.getLongitude();
             String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
-            if(mCurrentLocation!=null){
+            if(location!=null){
                 if(pull!=null)
                 pull.cancel(true);
                 pull = new JSONWeatherPull();
-                String latLong = Double.toString(mCurrentLocation.getLatitude()) + "," + Double.toString(mCurrentLocation.getLongitude()) + ".json";
+                String latLong = Double.toString(location.getLatitude()) + "," + Double.toString(location.getLongitude()) + ".json";
                 pull.execute(new String[]{latLong});
             }
 
@@ -169,10 +190,7 @@ public class YanWeather extends AppCompatActivity {
         protected Weather doInBackground(String... params){
             Weather weather= new Weather();
             HttpClient testHttp = new HttpClient();
-            //    String data = ((new HttpClient()).getWeatherData(params[0]));
-         //   String qur = testHttp.userQuery("autoip.json");
             String qur = testHttp.userQuery(params[0]);
-            //    String qur = testHttp.userQuery(params[0]);
             if(qur!=null) {
                 try {
                     qur = JSONParser.getUserQuery(qur);
@@ -184,7 +202,6 @@ public class YanWeather extends AppCompatActivity {
                     //     String data = testHttp.getWeatherData(params[0]);
                     try {
                         weather = JSONParser.getWeather(data);
-                        mWeather = weather;
 //                weather.mIcon = ((new HttpClient()).getImage(weather.mWeatherIconURL));
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -202,11 +219,6 @@ public class YanWeather extends AppCompatActivity {
         protected void onPostExecute(Weather weather){
             mProgressBar.setVisibility(View.INVISIBLE);
             super.onPostExecute(weather);
-          /*  if(weather.mIcon!=null &&weather.mIcon.length>0){
-                Bitmap img = BitmapFactory.decodeByteArray(weather.mIcon, 0, weather.mIcon.length);
-                mWeatherIcon.setImageBitmap(img);
-            }
-            */
             if(weather!=null){
                 Picasso.with(YanWeather.this)
                         .load(weather.mWeatherIconURL)
@@ -237,15 +249,6 @@ public class YanWeather extends AppCompatActivity {
             else{
                 endLocationDetection();
             }
-/*
-            if(mCurrentLocation!=null){
-                String latLong = Double.toString(mCurrentLocation.getLatitude()) +"," +Double.toString(mCurrentLocation.getLongitude())+".json";
-                pull.execute(new String[]{latLong});
-            }
-            else{
-                pull.execute(new String[]{"autoip.json"});
-            }
-*/
         }
         else{
             Log.d(TAG, "already trying to detect location");
@@ -286,18 +289,11 @@ public class YanWeather extends AppCompatActivity {
         if(lastKnownLocation != null){
             String temp = "lat: "+Double.toString(lastKnownLocation.getLatitude()) +" lon:" + Double.toString(lastKnownLocation.getLongitude());
             Toast.makeText(getBaseContext(), temp, Toast.LENGTH_LONG).show();
-            mCurrentLocation = lastKnownLocation;
-            String latLong = Double.toString(mCurrentLocation.getLatitude()) +"," +Double.toString(mCurrentLocation.getLongitude())+".json";
+            String latLong = Double.toString(lastKnownLocation.getLatitude()) +"," +Double.toString(lastKnownLocation.getLongitude())+".json";
                 if(pull!=null) pull.cancel(true);
                 pull = new JSONWeatherPull();
             pull.execute(new String[]{latLong});
         }
-/*
-        else{
-            Log.d(TAG, "Time Out, no location found");
-            Toast.makeText(getBaseContext(), "Time Out, no location found", Toast.LENGTH_LONG).show();
-        }
-        */
     }
-
+*/
 }
