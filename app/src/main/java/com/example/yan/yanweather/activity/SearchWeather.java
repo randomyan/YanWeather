@@ -11,7 +11,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -90,8 +89,7 @@ public class SearchWeather extends AppCompatActivity{
  //           Toast.makeText(getBaseContext(), query, Toast.LENGTH_LONG).show();
             mWeatherDataHelper.mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
             mWeatherDataHelper.mCity = (TextView) findViewById(R.id.city_field);
-            mWeatherDataHelper.mTemp = (TextView)findViewById(R.id.current_temperature_field);
-            mWeatherDataHelper.mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
+            mWeatherDataHelper.mForeCast = (TextView)findViewById(R.id.current_temperature_field);
             mWeatherDataHelper.mNotice = (TextView) findViewById(R.id.notice);
             mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
             mLocationListener.initiateJsonPull();

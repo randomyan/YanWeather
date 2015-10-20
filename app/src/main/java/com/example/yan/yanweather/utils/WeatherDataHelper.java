@@ -1,7 +1,6 @@
 package com.example.yan.yanweather.utils;
 
 import android.app.Activity;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -15,8 +14,7 @@ import java.util.Arrays;
  */
 public class WeatherDataHelper {
     public TextView mCity;
-    public TextView mTemp;
-    public ImageView mWeatherIcon;
+    public TextView mForeCast;
     public ProgressBar mProgressBar;
     public Activity mContext;
     public TextView mNotice;

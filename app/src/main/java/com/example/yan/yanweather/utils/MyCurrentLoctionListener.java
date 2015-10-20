@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.example.yan.yanweather.model.Weather;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
@@ -140,11 +139,8 @@ public class MyCurrentLoctionListener implements LocationListener {
             }
             */
             if(weather!=null){
-                Picasso.with(mWeatherDataHelper.mContext)
-                        .load(weather.mWeatherIconURL)
-                        .into(mWeatherDataHelper.mWeatherIcon);
                 mWeatherDataHelper.mCity.setText(location[1]);
-                mWeatherDataHelper.mTemp.setText("temperature"  + " C");
+                mWeatherDataHelper.mForeCast.setText("In "+mWeatherDataHelper.mNumOfDays + " days");
                 WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext,mWeatherDataHelper.getRequestedWeather(),mWeatherDataHelper.mNumOfDays,mWeatherDataHelper.mUnit);
                 mWeatherDataHelper.mListWeather.setAdapter(adapter);
  //               Toast.makeText(mWeatherDataHelper.mContext, "Sorry, server shutdown", Toast.LENGTH_SHORT).show();

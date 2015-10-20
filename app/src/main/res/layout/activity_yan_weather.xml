@@ -11,7 +11,8 @@
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="40dp"
+       />
 
     <TextView
         android:id="@+id/city_field"
@@ -21,20 +22,6 @@
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <ImageView
-        android:id="@+id/weather_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:maxHeight="100px"
-        android:maxWidth="250px"
-        android:minHeight="100px"
-        android:minWidth="250px"
-        android:scaleType="centerInside"
-
-        />
-
     <TextView
         android:id="@+id/current_temperature_field"
         android:layout_width="wrap_content"
@@ -42,7 +29,8 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="40sp" />
+        android:paddingBottom="10dp"
+        android:textSize="15sp" />
 
     <ListView
         android:id="@+id/listview"

@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
@@ -62,9 +61,8 @@ public class YanWeather extends AppCompatActivity {
             */
         mWeatherDataHelper.mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mWeatherDataHelper.mCity = (TextView) findViewById(R.id.city_field);
-        mWeatherDataHelper.mTemp = (TextView)findViewById(R.id.current_temperature_field);
+        mWeatherDataHelper.mForeCast = (TextView)findViewById(R.id.current_temperature_field);
         mWeatherDataHelper.mNotice = (TextView) findViewById(R.id.notice);
-        mWeatherDataHelper.mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
         mWeatherDataHelper.mListWeather =(ListView) findViewById(R.id.listview);
 
         mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
@@ -129,10 +127,13 @@ public class YanWeather extends AppCompatActivity {
         }
         Toast.makeText(this,"restart",Toast.LENGTH_LONG).show();
         mWeatherDataHelper.mNumOfDays = Integer.parseInt(mPreferenceSetting.getValue(this, mPreferenceSetting.PREFS_DAYS));
-        if("Celsius".equals(mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_UNIT)))
+        if("Celsius".equals(mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_UNIT))) {
             mWeatherDataHelper.mUnit = "Fahrenheit";
-        else  mWeatherDataHelper.mUnit = "Celsius";
-        mWeatherDataHelper.mUnit= mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_UNIT);
+        }
+        else  {
+            mWeatherDataHelper.mUnit = "Celsius";
+        }
+        mWeatherDataHelper.mForeCast.setText("In "+mWeatherDataHelper.mNumOfDays + " days");
         WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext,mWeatherDataHelper.getRequestedWeather(),mWeatherDataHelper.mNumOfDays,mWeatherDataHelper.mUnit);
         mWeatherDataHelper.mListWeather.setAdapter(adapter);
         /*
