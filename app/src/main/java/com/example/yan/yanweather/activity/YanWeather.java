@@ -3,6 +3,7 @@ package com.example.yan.yanweather.activity;
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -10,58 +11,51 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.yan.yanweather.R;
 import com.example.yan.yanweather.utils.MyCurrentLoctionListener;
+import com.example.yan.yanweather.utils.PreferenceSetting;
 import com.example.yan.yanweather.utils.WeatherDataHelper;
+import com.example.yan.yanweather.utils.WeatherListAdapter;
 
 public class YanWeather extends AppCompatActivity {
     private WeatherDataHelper mWeatherDataHelper = new WeatherDataHelper();
- //   private TextView mCity;
-//    private TextView mTemp;
- //   private ImageView mWeatherIcon;
-//    private LocationManager mLocationManager;
-//    private boolean mIsDetectingLocation = false;
-//    private final int TIMEOUT_IN_MS = 10000; //10 second timeout
-//    private static final String TAG = "LocationFinder";
-
-//    private ProgressBar mProgressBar;
     private SearchView searchView = null;
-    MyCurrentLoctionListener mLocationListener;
-//    JSONWeatherPull pull = null;
-
- //   private Context mContext = this;
-
-/*
-    public ProgressBar getProgressBar() {
-        return mProgressBar;
-    }
-
-    public Context getContext() {
-        return mContext;
-    }
+    private PreferenceSetting mPreferenceSetting;
+   private  MyCurrentLoctionListener mLocationListener;
 
 
-    public TextView getCity() {
-        return mCity;
-    }
-
-    public TextView getTemp() {
-        return mTemp;
-    }
-
-    public ImageView getWeatherIcon() {
-        return mWeatherIcon;
-    }
-*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_yan_weather);
+        mPreferenceSetting = new PreferenceSetting();
+        String test = mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_DAYS);
+        if(test==null){
+            mPreferenceSetting.defautSetting(this);
+            mWeatherDataHelper.mNumOfDays = 3;
+            mWeatherDataHelper.mUnit = "Fahrenheit";
+   //         mWeatherDataHelper.mHTemp = mWeatherDataHelper.mWeather.mHTempF;
+   //         mWeatherDataHelper.mLTemp = mWeatherDataHelper.mWeather.mLTempF;
+        }
+        else{
+            mWeatherDataHelper.mNumOfDays = Integer.parseInt(test);
+            mWeatherDataHelper.mUnit = mPreferenceSetting.getValue(this, mPreferenceSetting.PREFS_UNIT);
+            if("Celsius".equals(mPreferenceSetting.getValue(this, mPreferenceSetting.PREFS_UNIT))){
+                mWeatherDataHelper.mUnit = "Fahrenheit";
+            }
+            else {
+                mWeatherDataHelper.mUnit = "Celsius";
+            }
+
+        }
         mWeatherDataHelper.mContext = this;
+
         /*
         if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
@@ -71,9 +65,12 @@ public class YanWeather extends AppCompatActivity {
         mWeatherDataHelper.mTemp = (TextView)findViewById(R.id.current_temperature_field);
         mWeatherDataHelper.mNotice = (TextView) findViewById(R.id.notice);
         mWeatherDataHelper.mWeatherIcon = (ImageView)findViewById(R.id.weather_icon);
+        mWeatherDataHelper.mListWeather =(ListView) findViewById(R.id.listview);
+
         mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
         mLocationListener.initiateJsonPull();
         mLocationListener.mJSONWeatherPull.execute("autoip.json");
+
 
         mLocationListener.detectLocation();
     }
@@ -110,6 +107,8 @@ public class YanWeather extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this,Settings.class);
+            startActivity(intent);
             return true;
         }
         if (id == R.id.search) {
@@ -117,12 +116,8 @@ public class YanWeather extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-/*
-    public void doMySearch(String query){
-        Log.e("test", query);
 
-    }
-*/
+    //onRestart is called when going back from another activity
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -132,168 +127,39 @@ public class YanWeather extends AppCompatActivity {
             searchView.setQuery("", false);
             searchView.clearFocus();
         }
-
+        Toast.makeText(this,"restart",Toast.LENGTH_LONG).show();
+        mWeatherDataHelper.mNumOfDays = Integer.parseInt(mPreferenceSetting.getValue(this, mPreferenceSetting.PREFS_DAYS));
+        if("Celsius".equals(mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_UNIT)))
+            mWeatherDataHelper.mUnit = "Fahrenheit";
+        else  mWeatherDataHelper.mUnit = "Celsius";
+        mWeatherDataHelper.mUnit= mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_UNIT);
+        WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext,mWeatherDataHelper.getRequestedWeather(),mWeatherDataHelper.mNumOfDays,mWeatherDataHelper.mUnit);
+        mWeatherDataHelper.mListWeather.setAdapter(adapter);
+        /*
+        String test = mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_DAYS);
+        if( mDays!= Integer.parseInt(test)){
+            mDays = Integer.parseInt(test);
+            String[] nDaysWeather = new String[mDays];
+            for(int i=0;i<mDays;i++){
+                nDaysWeather[i] = "today";
+            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.weather_list,R.id.date,nDaysWeather);
+            mListView.setAdapter(adapter);
+        }
+        */
     }
 
-/*
-    public class MyCurrentLoctionListener implements LocationListener {
-        @Override
-        public void onLocationChanged(Location location) {
-            location.getLatitude();
-            location.getLongitude();
-            String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
-            if(location!=null){
-                if(pull!=null)
-                pull.cancel(true);
-                pull = new JSONWeatherPull();
-                String latLong = Double.toString(location.getLatitude()) + "," + Double.toString(location.getLongitude()) + ".json";
-                pull.execute(new String[]{latLong});
-            }
+    @Override
+    protected  void onResume(){
 
-            else{
-                myLocation ="Can't find weather info for this location";
-            }
-            Toast.makeText(getBaseContext(), myLocation, Toast.LENGTH_LONG).show();
-            //I make a log to see the results
-            //   Log.e("MY CURRENT LOCATION", myLocation);
-        }
-
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String s) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String s) {
-
-        }
-    }
-    private class JSONWeatherPull extends AsyncTask<String,Integer,Weather> {
-        @Override
-        protected void onPreExecute() {
-            mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
-            mProgressBar.setVisibility(View.VISIBLE);
-            super.onPreExecute();
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-
-        }
-        @Override
-        protected Weather doInBackground(String... params){
-            Weather weather= new Weather();
-            HttpClient testHttp = new HttpClient();
-            String qur = testHttp.userQuery(params[0]);
-            if(qur!=null) {
-                try {
-                    qur = JSONParser.getUserQuery(qur);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                if(qur!=null) {
-                    String data = testHttp.getWeatherData(qur);
-                    //     String data = testHttp.getWeatherData(params[0]);
-                    try {
-                        weather = JSONParser.getWeather(data);
-//                weather.mIcon = ((new HttpClient()).getImage(weather.mWeatherIconURL));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        weather = null;
-                    }
-                }
-            }
-            else{
-                weather = null;
-            }
-            return weather;
-        }
-
-        @Override
-        protected void onPostExecute(Weather weather){
-            mProgressBar.setVisibility(View.INVISIBLE);
-            super.onPostExecute(weather);
-            if(weather!=null){
-                Picasso.with(YanWeather.this)
-                        .load(weather.mWeatherIconURL)
-                        .into(mWeatherIcon);
-                mCity.setText(weather.mLocation.getCity() + ", " + weather.mLocation.getState() + ", " + weather.mLocation.getCountry());
-                mTemp.setText("" + weather.mTemperature.getTemp() + " C");
-            }
-            else{
-                Toast.makeText(getBaseContext(), "Sorry, server shutdown", Toast.LENGTH_SHORT).show();
-            }
-        }
+        Toast.makeText(this, "resume", Toast.LENGTH_LONG).show();
+        super.onResume();
     }
 
-    public void detectLocation(){
-        if(mIsDetectingLocation == false){
-            mIsDetectingLocation = true;
-
-            if(mLocationManager == null){
-                mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            }
-
-
-            if (Build.VERSION.SDK_INT<Build.VERSION_CODES.M||ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
-                    mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER,mLocationListener,null);
-                startTimer();
-            }
-            else{
-                endLocationDetection();
-            }
-        }
-        else{
-            Log.d(TAG, "already trying to detect location");
-            Toast.makeText(this,"already trying",Toast.LENGTH_SHORT).show();
-        }
+    @Override
+    protected  void onStop(){
+        super.onStop();
+//        mWeatherDataHelper.mNotice.setText("TExt");
     }
 
-    private void endLocationDetection(){
-        if(mIsDetectingLocation) {
-            mIsDetectingLocation = false;
-            if (Build.VERSION.SDK_INT<Build.VERSION_CODES.M|| ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                mLocationManager.removeUpdates(mLocationListener);
-            }
-        }
-        Log.d(TAG, "no permission");
-        Toast.makeText(getBaseContext(), "no permission", Toast.LENGTH_SHORT).show();
-    }
-
-    private void startTimer(){
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (mIsDetectingLocation) {
-                    fallbackOnLastKnownLocation();
-                }
-            }
-        }, TIMEOUT_IN_MS);
-
-    }
-
-    private void fallbackOnLastKnownLocation(){
-        Location lastKnownLocation = null;
-        if (Build.VERSION.SDK_INT<Build.VERSION_CODES.M||ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            lastKnownLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        }
-
-        if(lastKnownLocation != null){
-            String temp = "lat: "+Double.toString(lastKnownLocation.getLatitude()) +" lon:" + Double.toString(lastKnownLocation.getLongitude());
-            Toast.makeText(getBaseContext(), temp, Toast.LENGTH_LONG).show();
-            String latLong = Double.toString(lastKnownLocation.getLatitude()) +"," +Double.toString(lastKnownLocation.getLongitude())+".json";
-                if(pull!=null) pull.cancel(true);
-                pull = new JSONWeatherPull();
-            pull.execute(new String[]{latLong});
-        }
-    }
-*/
 }

@@ -30,6 +30,7 @@ public class MyCurrentLoctionListener implements LocationListener {
     private static final String TAG = "LocationFinder";
     private LocationManager mLocationManager;
     private WeatherDataHelper mWeatherDataHelper;
+    private String[] location;
     public boolean invalidZipCode = false;
 
     public MyCurrentLoctionListener(WeatherDataHelper y){
@@ -95,16 +96,17 @@ public class MyCurrentLoctionListener implements LocationListener {
             //   String qur = testHttp.userQuery("autoip.json");
             String qur = testHttp.userQuery(params[0]);
             //    String qur = testHttp.userQuery(params[0]);
+
             if(qur!=null) {
                 try {
-                    qur = JSONParser.getUserQuery(qur);
+                    location= JSONParser.getUserQuery(qur);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     invalidZipCode = true;
                     return null;
                 }
-                if(qur!=null) {
-                    String data = testHttp.getWeatherData(qur);
+                if(location[0]!=null) {
+                    String data = testHttp.getWeatherData(location[0]);
                     //     String data = testHttp.getWeatherData(params[0]);
                     try {
                         weather = JSONParser.getWeather(data);
@@ -127,6 +129,7 @@ public class MyCurrentLoctionListener implements LocationListener {
         protected void onPostExecute(Weather weather){
             mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
             super.onPostExecute(weather);
+            mWeatherDataHelper.mWeather =weather;
             if(invalidZipCode ==true){
                mWeatherDataHelper.mNotice.setText("Invalid zip code");
                 return;
@@ -140,8 +143,10 @@ public class MyCurrentLoctionListener implements LocationListener {
                 Picasso.with(mWeatherDataHelper.mContext)
                         .load(weather.mWeatherIconURL)
                         .into(mWeatherDataHelper.mWeatherIcon);
-                mWeatherDataHelper.mCity.setText(weather.mLocation.getCity() + ", " + weather.mLocation.getState() + ", " + weather.mLocation.getCountry());
-                mWeatherDataHelper.mTemp.setText("" + weather.mTemperature.getTemp() + " C");
+                mWeatherDataHelper.mCity.setText(location[1]);
+                mWeatherDataHelper.mTemp.setText("temperature"  + " C");
+                WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext,mWeatherDataHelper.getRequestedWeather(),mWeatherDataHelper.mNumOfDays,mWeatherDataHelper.mUnit);
+                mWeatherDataHelper.mListWeather.setAdapter(adapter);
  //               Toast.makeText(mWeatherDataHelper.mContext, "Sorry, server shutdown", Toast.LENGTH_SHORT).show();
             }
             else{
@@ -151,6 +156,8 @@ public class MyCurrentLoctionListener implements LocationListener {
 
         @Override
         protected void onCancelled(Weather weather) {
+            mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
+            mWeatherDataHelper.mNotice.setText("Error, no internet or server shutdown");
  //           invalidZipCode = true;
         }
     }

@@ -11,7 +11,7 @@ import java.net.URL;
  * Created by Yan on 10/7/2015.
  */
 public class HttpClient {
-    private static String BASE_URL = "http://api.wunderground.com/api/839414bb65aedbbc/conditions/q/";
+    private static String BASE_URL = "http://api.wunderground.com/api/839414bb65aedbbc/forecast10day/q/";
 
     public String userQuery(String loc){
         HttpURLConnection connection = null;
