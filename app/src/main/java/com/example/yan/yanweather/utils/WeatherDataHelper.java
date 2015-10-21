@@ -14,7 +14,7 @@ import java.util.Arrays;
  */
 public class WeatherDataHelper {
     public TextView mCity;
-    public TextView mForeCast;
+    public TextView mForeCast;  //display how many days of forecast
     public ProgressBar mProgressBar;
     public Activity mContext;
     public TextView mNotice;

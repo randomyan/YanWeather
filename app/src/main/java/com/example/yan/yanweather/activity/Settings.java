@@ -41,7 +41,6 @@ public class Settings extends AppCompatActivity {
                 boolean handled = false;
                 if (actionId == EditorInfo.IME_ACTION_DONE || (event != null) && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
                     mPreferenceSetting.save(getBaseContext(), mPreferenceSetting.PREFS_DAYS, mEditText.getText().toString());
-                    mTextView.setText(mEditText.getText().toString());
                     handled = true;
                 }
                 return handled;

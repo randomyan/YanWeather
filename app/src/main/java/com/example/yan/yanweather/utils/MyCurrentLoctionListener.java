@@ -128,7 +128,6 @@ public class MyCurrentLoctionListener implements LocationListener {
         protected void onPostExecute(Weather weather){
             mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
             super.onPostExecute(weather);
-            mWeatherDataHelper.mWeather =weather;
             if(invalidZipCode ==true){
                mWeatherDataHelper.mNotice.setText("Invalid zip code");
                 return;
@@ -139,6 +138,7 @@ public class MyCurrentLoctionListener implements LocationListener {
             }
             */
             if(weather!=null){
+                mWeatherDataHelper.mWeather =weather;
                 mWeatherDataHelper.mCity.setText(location[1]);
                 mWeatherDataHelper.mForeCast.setText("In "+mWeatherDataHelper.mNumOfDays + " days");
                 WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext,mWeatherDataHelper.getRequestedWeather(),mWeatherDataHelper.mNumOfDays,mWeatherDataHelper.mUnit);

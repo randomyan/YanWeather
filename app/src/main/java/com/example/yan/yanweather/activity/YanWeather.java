@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
@@ -71,6 +72,7 @@ public class YanWeather extends AppCompatActivity {
 
 
         mLocationListener.detectLocation();
+        handleIntent(getIntent());
     }
 
     @Override
@@ -88,7 +90,7 @@ public class YanWeather extends AppCompatActivity {
         searchView.setIconified(true);
 //        searchView.setIconifiedByDefault(false);
         searchView.setQueryHint("zip code");
-        ComponentName cn = new ComponentName(this, SearchWeather.class);
+        ComponentName cn = new ComponentName(this, YanWeather.class);
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(cn));
 
@@ -133,21 +135,9 @@ public class YanWeather extends AppCompatActivity {
         else  {
             mWeatherDataHelper.mUnit = "Celsius";
         }
-        mWeatherDataHelper.mForeCast.setText("In "+mWeatherDataHelper.mNumOfDays + " days");
+        mWeatherDataHelper.mForeCast.setText("In " + mWeatherDataHelper.mNumOfDays + " days");
         WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext,mWeatherDataHelper.getRequestedWeather(),mWeatherDataHelper.mNumOfDays,mWeatherDataHelper.mUnit);
         mWeatherDataHelper.mListWeather.setAdapter(adapter);
-        /*
-        String test = mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_DAYS);
-        if( mDays!= Integer.parseInt(test)){
-            mDays = Integer.parseInt(test);
-            String[] nDaysWeather = new String[mDays];
-            for(int i=0;i<mDays;i++){
-                nDaysWeather[i] = "today";
-            }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.weather_list,R.id.date,nDaysWeather);
-            mListView.setAdapter(adapter);
-        }
-        */
     }
 
     @Override
@@ -161,6 +151,28 @@ public class YanWeather extends AppCompatActivity {
     protected  void onStop(){
         super.onStop();
 //        mWeatherDataHelper.mNotice.setText("TExt");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            if(searchView!=null) searchView.setQuery("", false);
+            mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
+            mLocationListener.initiateJsonPull();
+            mLocationListener.mJSONWeatherPull.execute(query + ".json");
+            if(mLocationListener.invalidZipCode==true) {
+                mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
+                Toast.makeText(this,"Invalid zip code",Toast.LENGTH_LONG).show();
+            }
+
+            //use the query to search
+        }
     }
 
 }
