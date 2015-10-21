@@ -9,6 +9,7 @@
       <item android:id="@+id/search"
             android:title="@string/search_title"
             android:icon="@drawable/search"
+            android:inputType="number"
             app:showAsAction="collapseActionView|ifRoom"
             app:actionViewClass="android.widget.SearchView" />
 </menu>

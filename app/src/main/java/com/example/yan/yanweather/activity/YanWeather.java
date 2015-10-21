@@ -16,7 +16,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.yan.yanweather.R;
 import com.example.yan.yanweather.utils.MyCurrentLoctionListener;
@@ -46,7 +45,13 @@ public class YanWeather extends AppCompatActivity {
             mWeatherDataHelper.mUnit = "Fahrenheit";
         }
         else{
-            mWeatherDataHelper.mNumOfDays = Integer.parseInt(test);
+            try{mWeatherDataHelper.mNumOfDays = Integer.parseInt(test);}
+            catch (NumberFormatException e){
+                mPreferenceSetting.clearSetting(this);
+                mPreferenceSetting.defautSetting(this);
+                mWeatherDataHelper.mNumOfDays = 3;
+                mWeatherDataHelper.mUnit = "Fahrenheit";
+            }
             mWeatherDataHelper.mUnit = mPreferenceSetting.getValue(this, mPreferenceSetting.PREFS_UNIT);
             if("Celsius".equals(mPreferenceSetting.getValue(this, mPreferenceSetting.PREFS_UNIT))){
                 mWeatherDataHelper.mUnit = "Fahrenheit";
@@ -80,10 +85,19 @@ public class YanWeather extends AppCompatActivity {
         mRefreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mLocationListener.invalidZipCode = false;
                 mLocationListener.initiateJsonPull();
                 mLocationListener.mJSONWeatherPull.execute("autoip.json");
                 mLocationListener.detectLocation();
                 mLastQuery = null;
+                mWeatherDataHelper.mNotice.setText("");
+            }
+        });
+
+        mWeatherDataHelper.mNotice.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                mWeatherDataHelper.mNotice.setText("");
             }
         });
 
@@ -141,7 +155,6 @@ public class YanWeather extends AppCompatActivity {
             searchView.setQuery("", false);
             searchView.clearFocus();
         }
-        Toast.makeText(this,"restart",Toast.LENGTH_LONG).show();
         mWeatherDataHelper.mNumOfDays = Integer.parseInt(mPreferenceSetting.getValue(this, mPreferenceSetting.PREFS_DAYS));
         if("Celsius".equals(mPreferenceSetting.getValue(this,mPreferenceSetting.PREFS_UNIT))) {
             mWeatherDataHelper.mUnit = "Fahrenheit";
@@ -158,8 +171,6 @@ public class YanWeather extends AppCompatActivity {
 
     @Override
     protected  void onResume(){
-
-        Toast.makeText(this, "resume", Toast.LENGTH_LONG).show();
         super.onResume();
     }
 
@@ -189,11 +200,6 @@ public class YanWeather extends AppCompatActivity {
             mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
             mLocationListener.initiateJsonPull();
             mLocationListener.mJSONWeatherPull.execute(mLastQuery);
-            if(mLocationListener.invalidZipCode==true) {
-                mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(this,"Invalid zip code",Toast.LENGTH_LONG).show();
-            }
-
             //use the query to search
         }
     }

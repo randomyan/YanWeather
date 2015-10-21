@@ -41,6 +41,7 @@ public class Settings extends AppCompatActivity {
                 boolean handled = false;
                 if (actionId == EditorInfo.IME_ACTION_DONE || (event != null) && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
                     mPreferenceSetting.save(getBaseContext(), mPreferenceSetting.PREFS_DAYS, mEditText.getText().toString());
+                    mTextView.setText(getResources().getString(R.string.instruction)+ mEditText.getText().toString());
                     handled = true;
                 }
                 return handled;
@@ -50,6 +51,7 @@ public class Settings extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mPreferenceSetting.defautSetting(getBaseContext());
+                mTextView.setText(getResources().getString(R.string.instruction) + "3");
                 mEditText.setText(mPreferenceSetting.getValue(getBaseContext(), mPreferenceSetting.PREFS_DAYS));
                 mTempUnit.setText(mPreferenceSetting.getValue(getBaseContext(), mPreferenceSetting.PREFS_UNIT));
             }

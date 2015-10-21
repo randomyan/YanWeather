@@ -19,7 +19,7 @@
     <string name="place_not_found">Sorry, no weather data found.</string>
     <string name="action_settings">Settings</string>
     <string name="search_title">search</string>
-    <string name="instruction">Number of days of weather(1-10)</string>
+    <string name="instruction">Number of days of weather(1-10): </string>
     <string name="unit_default">Celsius</string>
     <string name="defaultSetting">default</string>
 </resources>

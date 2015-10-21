@@ -3,6 +3,7 @@ package com.example.yan.yanweather.utils;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -11,7 +12,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.View;
 
 import com.example.yan.yanweather.model.Weather;
@@ -61,6 +61,7 @@ public class MyCurrentLoctionListener implements LocationListener {
         }
 
         else{
+            mWeatherDataHelper.mNotice.setTextColor(Color.RED);
             mWeatherDataHelper.mNotice.setText("Can't find weather info for this location");
         }
  //       Toast.makeText(mWeatherDataHelper.mContext, myLocation, Toast.LENGTH_LONG).show();
@@ -139,8 +140,13 @@ public class MyCurrentLoctionListener implements LocationListener {
             if(defaultSearch) defaultSearchSucceed = true;
             if(newSearch) newSearchSucceed = true;
             if(invalidZipCode ==true){
+               mWeatherDataHelper.mNotice.setTextColor(Color.RED);
                mWeatherDataHelper.mNotice.setText("Invalid zip code");
                 return;
+            }
+            else {
+                mWeatherDataHelper.mNotice.setTextColor(Color.GREEN);
+                mWeatherDataHelper.mNotice.setText("weather forecast updated");
             }
           /*  if(weather.mIcon!=null &&weather.mIcon.length>0){
                 Bitmap img = BitmapFactory.decodeByteArray(weather.mIcon, 0, weather.mIcon.length);
@@ -156,6 +162,7 @@ public class MyCurrentLoctionListener implements LocationListener {
  //               Toast.makeText(mWeatherDataHelper.mContext, "Sorry, server shutdown", Toast.LENGTH_SHORT).show();
             }
             else{
+                mWeatherDataHelper.mNotice.setTextColor(Color.RED);
                 mWeatherDataHelper.mNotice.setText("Sorry, server shutdown");
             }
         }
@@ -164,6 +171,7 @@ public class MyCurrentLoctionListener implements LocationListener {
         protected void onCancelled(Weather weather) {
             mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
             if((defaultSearch &&!defaultSearchSucceed &&!newSearch)||(!newSearchSucceed)&&newSearch&&!oneSearchCancelled){
+                mWeatherDataHelper.mNotice.setTextColor(Color.RED);
                 mWeatherDataHelper.mNotice.setText("Error, no internet or server shutdown");
                 mWeatherDataHelper.mConnected = false;
             }
@@ -200,7 +208,7 @@ public class MyCurrentLoctionListener implements LocationListener {
 */
         }
         else{
-            Log.d(TAG, "already trying to detect location");
+            mWeatherDataHelper.mNotice.setTextColor(Color.RED);
             mWeatherDataHelper.mNotice.setText("already trying to detect location");
         }
     }
@@ -212,8 +220,8 @@ public class MyCurrentLoctionListener implements LocationListener {
                 mLocationManager.removeUpdates(this);
             }
         }
-        Log.d(TAG, "no permission");
-        mWeatherDataHelper.mNotice.setText("no permission");
+        mWeatherDataHelper.mNotice.setTextColor(Color.RED);
+        mWeatherDataHelper.mNotice.setText("no user permission");
     }
 
     private void startTimer(){
