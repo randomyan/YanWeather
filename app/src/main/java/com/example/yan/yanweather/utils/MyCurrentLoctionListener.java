@@ -31,6 +31,11 @@ public class MyCurrentLoctionListener implements LocationListener {
     private WeatherDataHelper mWeatherDataHelper;
     private String[] location;
     public boolean invalidZipCode = false;
+    private boolean defaultSearch = true;
+    private boolean defaultSearchSucceed = false;
+    private boolean newSearch = false;
+    private boolean newSearchSucceed = false;
+    private boolean oneSearchCancelled = false;
 
     public MyCurrentLoctionListener(WeatherDataHelper y){
         mWeatherDataHelper= y;
@@ -41,6 +46,9 @@ public class MyCurrentLoctionListener implements LocationListener {
     }
     @Override
     public void onLocationChanged(Location location) {
+        defaultSearch = false;
+        newSearch = true;
+        oneSearchCancelled = true;
         location.getLatitude();
         location.getLongitude();
 //        String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
@@ -128,6 +136,8 @@ public class MyCurrentLoctionListener implements LocationListener {
         protected void onPostExecute(Weather weather){
             mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
             super.onPostExecute(weather);
+            if(defaultSearch) defaultSearchSucceed = true;
+            if(newSearch) newSearchSucceed = true;
             if(invalidZipCode ==true){
                mWeatherDataHelper.mNotice.setText("Invalid zip code");
                 return;
@@ -153,7 +163,11 @@ public class MyCurrentLoctionListener implements LocationListener {
         @Override
         protected void onCancelled(Weather weather) {
             mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
-            mWeatherDataHelper.mNotice.setText("Error, no internet or server shutdown");
+            if((defaultSearch &&!defaultSearchSucceed &&!newSearch)||(!newSearchSucceed)&&newSearch&&!oneSearchCancelled){
+                mWeatherDataHelper.mNotice.setText("Error, no internet or server shutdown");
+                mWeatherDataHelper.mConnected = false;
+            }
+
  //           invalidZipCode = true;
         }
     }

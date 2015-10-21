@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
@@ -28,6 +29,9 @@ public class YanWeather extends AppCompatActivity {
     private SearchView searchView = null;
     private PreferenceSetting mPreferenceSetting;
    private  MyCurrentLoctionListener mLocationListener;
+    private static final String KEY_LAST_QUERY = "last_query";
+    private static String mLastQuery;
+    private ImageButton mRefreshButton;
 
 
     @Override
@@ -40,8 +44,6 @@ public class YanWeather extends AppCompatActivity {
             mPreferenceSetting.defautSetting(this);
             mWeatherDataHelper.mNumOfDays = 3;
             mWeatherDataHelper.mUnit = "Fahrenheit";
-   //         mWeatherDataHelper.mHTemp = mWeatherDataHelper.mWeather.mHTempF;
-   //         mWeatherDataHelper.mLTemp = mWeatherDataHelper.mWeather.mLTempF;
         }
         else{
             mWeatherDataHelper.mNumOfDays = Integer.parseInt(test);
@@ -54,12 +56,8 @@ public class YanWeather extends AppCompatActivity {
             }
 
         }
-        mWeatherDataHelper.mContext = this;
 
-        /*
-        if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
-            */
+        mWeatherDataHelper.mContext = this;
         mWeatherDataHelper.mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mWeatherDataHelper.mCity = (TextView) findViewById(R.id.city_field);
         mWeatherDataHelper.mForeCast = (TextView)findViewById(R.id.current_temperature_field);
@@ -68,11 +66,27 @@ public class YanWeather extends AppCompatActivity {
 
         mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
         mLocationListener.initiateJsonPull();
-        mLocationListener.mJSONWeatherPull.execute("autoip.json");
-
-
-        mLocationListener.detectLocation();
+        if (savedInstanceState != null && mLastQuery!=null){
+            mLastQuery = savedInstanceState.getString(KEY_LAST_QUERY);
+            mLocationListener.mJSONWeatherPull.execute(mLastQuery);
+        }
+        else {
+            mLocationListener.mJSONWeatherPull.execute("autoip.json");
+            mLocationListener.detectLocation();
+        }
         handleIntent(getIntent());
+
+        mRefreshButton = (ImageButton) findViewById(R.id.refresh);
+        mRefreshButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mLocationListener.initiateJsonPull();
+                mLocationListener.mJSONWeatherPull.execute("autoip.json");
+                mLocationListener.detectLocation();
+                mLastQuery = null;
+            }
+        });
+
     }
 
     @Override
@@ -136,8 +150,10 @@ public class YanWeather extends AppCompatActivity {
             mWeatherDataHelper.mUnit = "Celsius";
         }
         mWeatherDataHelper.mForeCast.setText("In " + mWeatherDataHelper.mNumOfDays + " days");
-        WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext,mWeatherDataHelper.getRequestedWeather(),mWeatherDataHelper.mNumOfDays,mWeatherDataHelper.mUnit);
-        mWeatherDataHelper.mListWeather.setAdapter(adapter);
+        if(mWeatherDataHelper.mConnected) {
+            WeatherListAdapter adapter = new WeatherListAdapter(mWeatherDataHelper.mContext, mWeatherDataHelper.getRequestedWeather(), mWeatherDataHelper.mNumOfDays, mWeatherDataHelper.mUnit);
+            mWeatherDataHelper.mListWeather.setAdapter(adapter);
+        }
     }
 
     @Override
@@ -158,14 +174,21 @@ public class YanWeather extends AppCompatActivity {
         handleIntent(intent);
     }
 
-    private void handleIntent(Intent intent) {
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString(KEY_LAST_QUERY, mLastQuery);
+    }
+
+        private void handleIntent(Intent intent) {
 
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
+            mLastQuery = query + ".json";
             if(searchView!=null) searchView.setQuery("", false);
             mLocationListener = new MyCurrentLoctionListener(mWeatherDataHelper);
             mLocationListener.initiateJsonPull();
-            mLocationListener.mJSONWeatherPull.execute(query + ".json");
+            mLocationListener.mJSONWeatherPull.execute(mLastQuery);
             if(mLocationListener.invalidZipCode==true) {
                 mWeatherDataHelper.mProgressBar.setVisibility(View.INVISIBLE);
                 Toast.makeText(this,"Invalid zip code",Toast.LENGTH_LONG).show();

@@ -23,6 +23,7 @@ public class WeatherDataHelper {
     public String mUnit;
     public Weather mWeather;
     public Weather mListWeatherData = new Weather();
+    public boolean mConnected = true;
     public Weather getRequestedWeather(){
         mListWeatherData.mDates = Arrays.copyOfRange(mWeather.mDates, 0,mNumOfDays);
         mListWeatherData.mIconURL = Arrays.copyOfRange(mWeather.mIconURL, 0,mNumOfDays);

@@ -1,6 +1,5 @@
 package com.example.yan.yanweather.utils;
 
-import com.example.yan.yanweather.model.Location;
 import com.example.yan.yanweather.model.Weather;
 
 import org.json.JSONArray;
@@ -13,7 +12,6 @@ import org.json.JSONObject;
 public class JSONParser {
     public static Weather getWeather(String data) throws JSONException{
         Weather weather = new Weather();
-        Location loc = new Location();
         JSONObject jObj= getObject("simpleforecast",getObject("forecast", new JSONObject(data)));
         JSONArray array = (JSONArray) jObj.get("forecastday");
         int n = array.length();
