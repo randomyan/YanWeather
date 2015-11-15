@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">天气预报</string>
+
+    <string name="change_city">Change city</string>
+
+    <!-- Put your own APP ID here -->
+    <string name="open_weather_maps_app_id">11111</string>
+
+    <string name="weather_sunny">&#xf00d;</string>
+    <string name="weather_clear_night">&#xf02e;</string>
+
+    <string name="weather_foggy">&#xf014;</string>
+    <string name="weather_cloudy">&#xf013;</string>
+    <string name="weather_rainy">&#xf019;</string>
+    <string name="weather_snowy">&#xf01b;</string>
+    <string name="weather_thunder">&#xf01e;</string>
+    <string name="weather_drizzle">&#xf01c;</string>
+
+    <string name="place_not_found">对不起，没有找到天气信息</string>
+    <string name="action_settings">设置</string>
+    <string name="search_title">查找</string>
+    <string name="instruction">需要查看最近的天气(1-10): </string>
+    <string name="unit_default">摄氏度</string>
+    <string name="defaultSetting">默认设置</string>
+</resources>
