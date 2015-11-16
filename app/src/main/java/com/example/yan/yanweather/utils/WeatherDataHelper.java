@@ -29,17 +29,17 @@ public class WeatherDataHelper {
         mListWeatherData.mIconURL = Arrays.copyOfRange(mWeather.mIconURL, 0,mNumOfDays);
         mListWeatherData.mDescrip = Arrays.copyOfRange(mWeather.mDescrip, 0,mNumOfDays);
         mListWeatherData.mHTempC = Arrays.copyOfRange(mWeather.mHTempC, 0,mNumOfDays);
-        mListWeatherData.mLTempC = Arrays.copyOfRange(mWeather.mHTempC, 0,mNumOfDays);
+        mListWeatherData.mLTempC = Arrays.copyOfRange(mWeather.mLTempC, 0,mNumOfDays);
         mListWeatherData.mHTempF = Arrays.copyOfRange(mWeather.mHTempF, 0,mNumOfDays);
-        mListWeatherData.mLTempF = Arrays.copyOfRange(mWeather.mHTempF, 0,mNumOfDays);
+        mListWeatherData.mLTempF = Arrays.copyOfRange(mWeather.mLTempF, 0,mNumOfDays);
 
         if("Fahrenheit".equals(mUnit)){
             mListWeatherData.mHTemp = Arrays.copyOfRange(mWeather.mHTempF, 0,mNumOfDays);
-            mListWeatherData.mLTemp = Arrays.copyOfRange(mWeather.mHTempF, 0,mNumOfDays);
+            mListWeatherData.mLTemp = Arrays.copyOfRange(mWeather.mLTempF, 0,mNumOfDays);
         }
         else {
             mListWeatherData.mHTemp = Arrays.copyOfRange(mWeather.mHTempC, 0,mNumOfDays);
-            mListWeatherData.mLTemp = Arrays.copyOfRange(mWeather.mHTempC, 0,mNumOfDays);
+            mListWeatherData.mLTemp = Arrays.copyOfRange(mWeather.mLTempC, 0,mNumOfDays);
         }
         return mListWeatherData;
     }
